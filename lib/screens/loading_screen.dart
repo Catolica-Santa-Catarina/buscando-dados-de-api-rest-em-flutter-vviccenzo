@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:tempo_template/services/location.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
-const apiKey = 'dc3ad9b62b4a017e9610e8fcdccaa692';
+import 'package:tempo_template/services/networking.dart';
+import 'package:tempo_template/screens/location_screen.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:tempo_template/screens/location_screen.dart';
+import '../services/weather.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({Key? key}) : super(key: key);
@@ -14,11 +15,29 @@ class LoadingScreen extends StatefulWidget {
 
 class _LoadingScreenState extends State<LoadingScreen> {
 
+  var location = Location();
+
+  void pushToLocationScreen(dynamic weatherData) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return LocationScreen(localWeatherData: weatherData);
+    }));
+  }
+
   late double latitude;
   late double longitude;
 
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
+
+  void getData() async {
+    var weatherData = await WeatherModel().getLocationWeather();
+    pushToLocationScreen(weatherData);
+  }
+
   Future<void> getLocation() async {
-    var location = Location();
     await location.getCurrentLocation();
 
     latitude = location.latitude;
@@ -27,34 +46,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
     getData();
   }
 
-  void getData() async {
-    var url = Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric');
-    http.Response response = await http.get(url);
-
-    if (response.statusCode == 200) { // se a requisição foi feita com sucesso
-      var data = response.body;
-      var jsonData = jsonDecode(data);
-
-      var cityName = jsonData['name'];
-      var temperature = jsonData['main']['temp'];
-      var weatherCondition = jsonData['weather'][0]['id'];
-      print('cidade: $cityName, temperatura: $temperature, condição: $weatherCondition');
-
-    } else {
-      print(response.statusCode);  // senão, imprima o código de erro
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getLocation();
-  }
-
   @override
   Widget build(BuildContext context) {
-    getData();
-    return Scaffold(
+    return const Center(
+      child: SpinKitDoubleBounce(
+        color: Colors.white,
+        size: 100.0,
+      ),
     );
   }
 }
