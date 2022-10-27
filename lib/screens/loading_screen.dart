@@ -3,6 +3,8 @@ import 'package:tempo_template/services/location.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+const apiKey = 'dc3ad9b62b4a017e9610e8fcdccaa692';
+
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({Key? key}) : super(key: key);
 
@@ -12,13 +14,21 @@ class LoadingScreen extends StatefulWidget {
 
 class _LoadingScreenState extends State<LoadingScreen> {
 
+  late double latitude;
+  late double longitude;
+
   Future<void> getLocation() async {
-    Location location = new Location();
-    location.getCurrentLocation();
+    var location = Location();
+    await location.getCurrentLocation();
+
+    latitude = location.latitude;
+    longitude = location.longitude;
+
+    getData();
   }
 
   void getData() async {
-    var url = Uri.parse('https://samples.openweathermap.org/data/2.5/weather?lat=35&lon=139&appid=b6907d289e10d714a6e88b30761fae22');
+    var url = Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric');
     http.Response response = await http.get(url);
 
     if (response.statusCode == 200) { // se a requisição foi feita com sucesso
